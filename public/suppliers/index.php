@@ -1,9 +1,10 @@
-
+```php
 <?php
 require_once __DIR__ . '/../../helpers/bootstrap.php';
 
 require_admin();
 
+// Proses tambah supplier
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     check_csrf();
 
@@ -50,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('index.php');
 }
 
+// Proses hapus supplier
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
 
@@ -62,13 +64,16 @@ if (isset($_GET['delete'])) {
 
             flash('Supplier berhasil dihapus.');
         } catch (Throwable $e) {
-            flash('Supplier tidak dapat dihapus karena masih digunakan.');
+            flash(
+                'Supplier tidak dapat dihapus karena masih digunakan.'
+            );
         }
     }
 
     redirect('index.php');
 }
 
+// Ambil daftar supplier
 $rows = db()->query(
     'SELECT * FROM suppliers ORDER BY id DESC'
 )->fetchAll();
@@ -76,68 +81,110 @@ $rows = db()->query(
 layout_start('Supplier');
 ?>
 
-<h1>Supplier</h1>
+<div class="toolbar">
+    <div>
+        <h1>Supplier</h1>
+        <p class="muted">
+            Kelola data pemasok barang dalam inventaris.
+        </p>
+    </div>
+</div>
 
-<form class="inline-form" method="post">
-    <input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-    <input type="hidden" name="id" value="0">
+<div class="panel">
+    <h2>Tambah Supplier</h2>
+    <p class="muted">
+        Masukkan informasi pemasok yang ingin didaftarkan.
+    </p>
 
-    <input
-        type="text"
-        name="name"
-        placeholder="Nama supplier"
-        required
-    >
+    <form class="inline-form" method="post">
+        <input
+            type="hidden"
+            name="csrf"
+            value="<?= e(csrf()) ?>"
+        >
 
-    <input
-        type="text"
-        name="phone"
-        placeholder="Nomor telepon"
-    >
+        <input type="hidden" name="id" value="0">
 
-    <input
-        type="email"
-        name="email"
-        placeholder="Email"
-    >
+        <input
+            type="text"
+            name="name"
+            placeholder="Nama supplier"
+            aria-label="Nama supplier"
+            required
+        >
 
-    <button type="submit">Tambah Supplier</button>
-</form>
+        <input
+            type="text"
+            name="phone"
+            placeholder="Nomor telepon"
+            aria-label="Nomor telepon"
+        >
 
-<table>
-    <thead>
-        <tr>
-            <th>Nama</th>
-            <th>Telepon</th>
-            <th>Email</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
+        <input
+            type="email"
+            name="email"
+            placeholder="Email supplier"
+            aria-label="Email supplier"
+        >
 
-    <tbody>
-        <?php foreach ($rows as $row): ?>
+        <button type="submit">Tambah Supplier</button>
+    </form>
+</div>
+
+<div class="panel" style="margin-top: 20px;">
+    <div class="toolbar">
+        <div>
+            <h2>Daftar Supplier</h2>
+            <p class="muted">
+                Total <?= count($rows) ?> supplier terdaftar.
+            </p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
             <tr>
-                <td><?= e($row['name']) ?></td>
-                <td><?= e($row['phone'] ?? '') ?></td>
-                <td><?= e($row['email'] ?? '') ?></td>
-                <td>
-                    <a
-                        class="danger"
-                        href="?delete=<?= (int) $row['id'] ?>"
-                        onclick="return confirm('Yakin ingin menghapus supplier ini?')"
-                    >
-                        Hapus
-                    </a>
-                </td>
+                <th>Nama Supplier</th>
+                <th>Telepon</th>
+                <th>Email</th>
+                <th>Aksi</th>
             </tr>
-        <?php endforeach; ?>
+        </thead>
 
-        <?php if (empty($rows)): ?>
-            <tr>
-                <td colspan="4">Belum ada supplier.</td>
-            </tr>
-        <?php endif; ?>
-    </tbody>
-</table>
+        <tbody>
+            <?php foreach ($rows as $row): ?>
+                <tr>
+                    <td>
+                        <strong><?= e($row['name']) ?></strong>
+                    </td>
+
+                    <td><?= e($row['phone'] ?? '') ?: '-' ?></td>
+
+                    <td><?= e($row['email'] ?? '') ?: '-' ?></td>
+
+                    <td>
+                        <a
+                            class="danger"
+                            href="?delete=<?= (int) $row['id'] ?>"
+                            onclick="return confirm('Yakin ingin menghapus supplier ini?')"
+                        >
+                            Hapus
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+
+            <?php if (empty($rows)): ?>
+                <tr>
+                    <td colspan="4">
+                        Belum ada supplier. Tambahkan supplier melalui
+                        formulir di atas.
+                    </td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
 
 <?php layout_end(); ?>
+```
