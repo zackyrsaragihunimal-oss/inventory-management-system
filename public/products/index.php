@@ -1,13 +1,1 @@
-<WritingBlock id="61582" variant="document">```php'p.name',
-    'price' => 'p.price',
-    'stock' => 'p.stock',
-];
-$sort = $allowed[$_GET['sort'] ?? 'name'] ?? 'p.name';
-$dir = ($_GET['dir'] ?? 'asc') === 'desc'
-    ? 'DESC'
-    : 'ASC';
-// Menyiapkan filter pencarian.
-$where = [];
-$args = [];
-$search = trim($_GET['q'] ?? '');
-if ($search !== '')
+<?php require_once __DIR__.'/../../helpers/bootstrap.php'; require_login(); $allowed=['name'=>'p.name','price'=>'p.price','stock'=>'p.stock']; $sort=$allowed[$_GET['sort']??'name']??'p.name'; $dir=($_GET['dir']??'asc')==='desc'?'DESC':'ASC'; $where=[];$args=[]; if(trim($_GET['q']??'')){ $where[]='(p.name LIKE ? OR p.sku LIKE ?)';$q='%'.trim($_GET['q']).'%';$args=[$q,$q]; } if((int)($_GET['category_id']??0)){ $where[]='p.category_id=?';$args[]=(int)$_GET['category_id']; } $sql='SELECT p.*,c.name category FROM products p JOIN categories c ON c.id=p.category_id'.($where?' WHERE '.implode(' AND ',$where):'')." ORDER BY $sort $dir LIMIT 10"; $st=db()->prepare($sql);$st->execute($args);$rows=$st->fetchAll(); $cats=db()->query('SELECT * FROM categories ORDER BY name')->fetchAll(); layout_start('Produk'); ?><div class="toolbar"><h1>Produk</h1><?php if($_SESSION['user']['role']==='admin'):?><a class="button" href="edit.php">Tambah produk</a><?php endif?></div><form class="filters"><input name="q" placeholder="Cari nama atau SKU" value="<?=e($_GET['q']??'')?>"><select name="category_id"><option value="">Semua kategori</option><?php foreach($cats as $c):?><option value="<?=$c['id']?>" <?=((int)($_GET['category_id']??0)==$c['id']?'selected':'')?>><?=e($c['name'])?></option><?php endforeach?></select><select name="sort"><option value="name">Nama</option><option value="price">Harga</option><option value="stock">Stok</option></select><button>Filter</button></form><table><tr><th>SKU</th><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr><?php foreach($rows as $r):?><tr><td><?=e($r['sku'])?></td><td><?=e($r['name'])?></td><td><?=e($r['category'])?></td><td>Rp <?=number_format($r['price'],0,',','.')?></td><td><?=e($r['stock'])?></td><td><?php if($_SESSION['user']['role']==='admin'):?><a href="edit.php?id=<?=$r['id']?>">Edit</a><?php endif?></td></tr><?php endforeach?></table><?php layout_end();
